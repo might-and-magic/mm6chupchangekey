@@ -1,11 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+#include <Windows.h>
 #include <string>
-//#include <conio.h>
 #include <algorithm>
-#include <iterator>
+//#include <conio.h>
+//#include <iterator>
 //#include <iostream>
-#include <fstream>
 
 typedef std::string string;
 
@@ -266,12 +266,30 @@ void wrongArgumentsAlert(void) {
 	printf("Wrong arguments.\nUsage: mm6chupchangekey.exe file function1 key1 function2 key2 ...");
 }
 
-bool copyFile(const char *SRC, const char* DEST) {
-	std::ifstream src(SRC, std::ios::binary);
-	std::ofstream dest(DEST, std::ios::binary);
-	dest << src.rdbuf();
-	return src && dest;
+//bool copyFile(const char *SRC, const char* DEST) {
+//	std::ifstream src(SRC, std::ios::binary);
+//	std::ofstream dest(DEST, std::ios::binary);
+//	dest << src.rdbuf();
+//	return src && dest;
+//}
+
+wchar_t* s2ws(const string& s) {
+	int len;
+	int slength = (int)s.length() + 1;
+	len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+	return buf;
 }
+
+string GetExePath() {
+	char buffer[MAX_PATH];
+	GetModuleFileNameA(NULL, buffer, MAX_PATH);
+	string f = string(buffer);
+	return f.substr(0, f.find_last_of("\\/"));
+}
+
+
 
 int main(int argc, char * argv[]) {
 
@@ -280,13 +298,11 @@ int main(int argc, char * argv[]) {
 		int i;
 		string arg, content;
 
-		char backupExt[8] = ".backup";
-		char * backupPath;
-		backupPath = (char *)malloc(strlen(argv[1]) + strlen(backupExt) + 1);
-		backupPath[0] = '\0';
-		strcat(backupPath, argv[1]);
-		strcat(backupPath, backupExt);
-		copyFile(argv[1], backupPath);
+		string backupSuffix = ".backup";
+		string backupPath = argv[1] + backupSuffix;
+
+		string p = GetExePath();
+		CopyFile(s2ws(p + '\\' + argv[1]), s2ws(p + '\\' + backupPath), 0);
 
 		FILE * f;
 		f = fopen(argv[1], "r+b");
